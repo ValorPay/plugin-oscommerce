@@ -1,0 +1,72 @@
+#frmCheckout button[type="submit"]:disabled {
+  opacity:0.5;
+  cursor: not-allowed;
+}
+#frmCheckout button[type="submit"]:disabled, .w-checkout-continue-btn .or-text:first-of-type {
+  display:none
+}
+#valorCcBox .logobox {
+  text-align:right;
+} 
+#valorCcBox .required-message-wrap {
+  display:none;
+  width:100%;
+} 
+#valorCcBox .valorpay-cc-logo {
+  width:70px;
+  opacity:0.3;
+} 
+#valorCcBox .col-25 {
+  float:right;
+} 
+#valorCcBox .col-75 {
+  margin-right:10px;
+  float:left;
+  position:relative;
+} 
+#valorCcBox .col-75 {
+  float:left;
+}
+#valorCcBox input[type=text],#valorCcBox select,#valorCcBox input[type=password] {
+  width:100%;
+  margin-bottom:0px;
+  resize:vertical;
+}
+#valorCcBox .required-message-wrap {
+  margin-bottom:5px;
+}
+#valorCcBox label {
+  padding:12px 12px 0px 0;
+  display:inline-block;
+}
+#valorCcBox .container {
+  border-radius:5px;
+  background-color:#f2f2f2;
+  padding:20px;
+}
+#valorCcBox .col-25 {
+  width:36%;
+  position:relative;
+}
+#valorCcBox .col-75 {
+  width:60%;
+}
+#valorCcBox .col-50-1 {
+  float:left;
+  width:48%;
+}
+#valorCcBox .col-50-2 {
+  float:right;
+  width:48%;
+}
+#valorCcBox .row:after {
+  content:"";
+  display:table;
+  clear:both;
+}
+@media screen and (max-width:600px) {
+  #valorCcBox .col-25,#valorCcBox .col-75 {
+    width:100%;
+    margin-top:0;
+  }
+}

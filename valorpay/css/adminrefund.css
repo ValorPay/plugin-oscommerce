@@ -1,0 +1,129 @@
+.valorpay-container {
+    width: 28em;
+    background-color: #ffffff;
+    padding: 2em 2em;
+    position: absolute;
+    transform: translate(-50%, -50%);
+    top: 50%;
+    left: 50%;
+    z-index: 99999;
+    text-align: center;
+    border-radius: 0.8em;
+    box-shadow: 0 45px 60px rgba(30, 22, 1, 0.3);
+}
+.valorpay-container #timerbox {
+    display: none;
+}
+.valorpay-container .badge {
+    font-weight: bold;
+    color: #000;
+    background: #ffb800;
+}
+.valorpay-container .text-error {
+    color: #ff0000;
+    display: inline-block;
+}
+.valorpay-container #resendcode {
+    color: #7952b3;
+    border:0px;
+    background: #ffffff;
+}
+.valorpay-container .disabledresendcode {
+    opacity: 0.5;
+}
+.valorpay-container .inputfield {
+    width: 100%;
+    display: flex;
+    margin-top: 1em;
+    margin-bottom: 2em;
+    justify-content: space-around;
+}
+.valorpay-container .input {
+    height: 2em;
+    width: 2em;
+    border: 1px solid #dad9df;
+    outline: none;
+    text-align: center;
+    font-size: 1.5em;
+    border-radius: 0.2em;
+    background-color: #ffffff;
+    outline: none;
+    /*Hide number field arrows*/
+    -moz-appearance: textfield;
+}
+.valorpay-container input[type="number"]::-webkit-outer-spin-button,
+.valorpay-container input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.valorpay-container .input:disabled {
+  color: #89888b;
+}
+.valorpay-container .input:focus {
+  border: 3px solid #ffb800;
+}
+.valorpay-container .buttonbox {
+    margin: 1em auto;
+    display: block;
+    width: 100%;
+    text-align: center;
+}
+.valorpay-container .buttonbox button {
+    margin-left: 4px;
+    margin-right: 4px;
+}
+.warn,
+.warn::before,
+.warn::after
+{
+  position: relative;
+  padding: 0;
+  margin: 0;
+}
+
+.warn {
+  font-size: 25px;
+  margin-right: 5px;
+  display: inline-block;
+  color: transparent;
+}
+
+.warn.warning {
+  display: inline-block;
+  top: 0.225em;
+  width: 1.15em;
+  height: 1.15em;
+  text-align: center;
+  overflow: hidden;
+  border: none;
+  background-color: transparent;
+  border-radius: 0.625em;
+}
+
+.warn.warning::before {
+  content: "";
+  display: block;
+  top: -0.08em;
+  left: 0.0em;
+  position: absolute;
+  border: transparent 0.6em solid;
+  border-bottom-color: #fd3;
+  border-bottom-width: 1em;
+  border-top-width: 0;
+  box-shadow: #999 0 1px 1px;
+}
+
+.warn.warning::after {
+  display: block;
+  position: absolute;
+  top: 0.3em;
+  left: 0;
+  width: 100%;
+  padding: 0 1px;
+  text-align: center;
+  font-family: "Garamond";
+  content: "!";
+  font-size: 0.65em;
+  font-weight: bold;
+  color: #333;
+}
