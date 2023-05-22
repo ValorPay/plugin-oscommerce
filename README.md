@@ -1,6 +1,6 @@
 # ValorPayTech Payment Module for OsCommerce v4
 
-![GitHub](https://img.shields.io/github/r-package/v/valor-plugins/plugin-oscommerce?color=blue&label=stable) ![GitHub](https://img.shields.io/github/license/valor-plugins/plugin-oscommerce?color=brightgreen)
+![GitHub](https://img.shields.io/github/r-package/v/ValorPay/plugin-oscommerce?color=blue&label=stable) ![GitHub](https://img.shields.io/github/license/ValorPay/plugin-oscommerce?color=brightgreen)
 
 This is a Payment Module for OsCommerce v4, that gives you the ability to process payments through payment service providers running on ValorPayTech platform.
 
@@ -13,7 +13,7 @@ This is a Payment Module for OsCommerce v4, that gives you the ability to proces
 
 ## Installation (App Shop / Local Storage)
 
-  * [Download the Payment Module archive](https://github.com/valor-plugins/plugin-oscommerce/archive/refs/heads/main.zip), unpack it.
+  * [Download the Payment Module archive](https://github.com/ValorPay/plugin-oscommerce/archive/refs/heads/main.zip), unpack it.
   
   * Navigate to ```plugin-oscommerce-main\plugin-oscommerce-main``` folder then pack its contents and give zip file name ```plugin-oscommerce.zip``` 
   
@@ -23,7 +23,7 @@ This is a Payment Module for OsCommerce v4, that gives you the ability to proces
 
 ## Installation (Manual)
 
-  * [Download the Payment Module archive](https://github.com/valor-plugins/plugin-oscommerce/archive/refs/heads/main.zip), unpack it.
+  * [Download the Payment Module archive](https://github.com/ValorPay/plugin-oscommerce/archive/refs/heads/main.zip), unpack it.
   
   * Navigate project folder ```lib\common\modules\orderPayment``` and upload unpack contents from ```plugin-oscommerce-main\plugin-oscommerce-main``` there.
 
