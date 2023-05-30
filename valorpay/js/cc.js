@@ -192,6 +192,24 @@ $(document).ready(function () {
             $('#valorpay-card-zip').keyup(function (e) {
                 checkErrors();
             });
+
+            $('#valorpay-card-zip').on('keydown',function(e){
+                var deleteKeyCode = 8;
+                var tabKeyCode = 9;
+                var backspaceKeyCode = 46;
+                if ((e.key>=0 && e.key<=9) ||
+                     (e.which>=96 && e.which<=105)  || // for num pad numeric keys
+                     e.which === deleteKeyCode || // for delete key,
+                        e.which === tabKeyCode || // for tab key
+                            e.which === backspaceKeyCode) // for backspace
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            });
         }
 
     }
