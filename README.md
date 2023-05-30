@@ -27,7 +27,7 @@ This is a Payment Module for OsCommerce v4, that gives you the ability to proces
   
   * Navigate project folder ```lib\common\modules\orderPayment``` and upload unpack contents from ```plugin-oscommerce-main\plugin-oscommerce-main``` there.
 
-  * Move file ```ot_valorpay.php``` from ```lib\common\modules\orderPayment``` to  ```lib\common\modules\orderTotal``` 
+  * Move file ```ot_valorpay.php``` from ```lib\common\modules\orderPayment``` to  ```lib\common\modules\orderTotal``` if installer doesn't move.
 
 ## Deletion 
 
