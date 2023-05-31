@@ -2,7 +2,7 @@
 
 ![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/ValorPay/plugin-oscommerce?label=stable) ![GitHub](https://img.shields.io/github/license/ValorPay/plugin-oscommerce?color=brightgreen)
 
-This is a Payment Module for OsCommerce v4, that gives you the ability to process payments through payment service providers running on ValorPayTech platform.
+This is a Payment Module for OsCommerce v4, that gives you the ability to process payments through payment service providers running on ValorPayTech platform.123
 
 ## Requirements
 
