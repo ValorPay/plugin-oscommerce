@@ -20,7 +20,36 @@ class valorpay extends ModulePayment {
      * variables
      */
     var $code, $title, $description, $enabled, $order_id;
+	
+    /**
+	 * Sandbox payment URL
+	 */
+	const WC_VALORPAY_SANDBOX_URL = 'https://securelinktest.valorpaytech.com:4430/';
+	/**
+	 * Live payment URL
+	 */
+	const WC_VALORPAY_URL = 'https://securelink.valorpaytech.com/';
+	
+	/**
+	 * Sandbox vault add customer profile URL
+	 */
+	const WC_VALORPAY_VAULT_SANDBOX_URL = 'https://demo.valorpaytech.com/api/valor-vault/addcustomer';
 
+	/**
+	 * Sandbox vault add payment profile URL
+	 */
+	const WC_VALORPAY_VAULT_ADD_PAYMENT_PROFILE_SANDBOX_URL = 'https://demo.valorpaytech.com/api/valor-vault/addpaymentprofile/%s';
+
+	/**
+	 * Sandbox vault get payment profile URL
+	 */
+	const WC_VALORPAY_VAULT_GET_PAYMENT_PROFILE_SANDBOX_URL = 'https://demo.valorpaytech.com/api/valor-vault/getpaymentprofile/%s';
+
+	/**
+	 * Sandbox vault get payment profile URL
+	 */
+	const WC_VALORPAY_VAULT_DELETE_PAYMENT_PROFILE_SANDBOX_URL = 'https://demo.valorpaytech.com/api/valor-vault/deletepaymentprofile/%s/%s';
+	
     /**
      * default values for translation
      */
@@ -230,6 +259,8 @@ class valorpay extends ModulePayment {
         
         $billing_address = $this->manager->getBillingAddress();
             
+        $customer_id = \Yii::$app->user->getId();
+
         $script = '<script type="text/javascript">'
                   . 'var valorpay_cc_months = ' . json_encode($months_array) . ';'
                   . 'var valorpay_cc_years = ' . json_encode($years_array) . ';'
@@ -237,8 +268,12 @@ class valorpay extends ModulePayment {
                   . 'var valorpay_logos = \'' . $logos . '\';'
                   . 'var valorpay_street_address = \'' . $billing_address["street_address"] . '\';'
                   . 'var valorpay_postcode = \'' . $billing_address["postcode"] . '\';'
+                  . 'var valorpay_cards = \'' . (MODULE_PAYMENT_VALORPAY_VAULT === 'Yes'?$this->get_payment_profile():'') . '\';'
+                  . 'var valorpay_customer_id = \'' . $customer_id . '\';'
+                  . 'var valorpay_vault = \'' . MODULE_PAYMENT_VALORPAY_VAULT . '\';'
+                  . 'var valorpay_brand_logo_path = \'' . tep_href_link('lib/common/modules/orderPayment/valorpay/images') . '\';'
                 . '</script>';
-
+                
         return array('id' => $this->code,
             'module' => (MODULE_PAYMENT_VALORPAY_SHOWLOGO=='Yes'?'<img src="'.$valorlogo.'" width="150px">':MODULE_PAYMENT_VALORPAY_FRONT_TITLE).$script
         );
@@ -281,9 +316,9 @@ class valorpay extends ModulePayment {
 
 		$sandbox = MODULE_PAYMENT_VALORPAY_SANDBOX;
     	    
-		if( $sandbox == "Yes" )	$_valor_api_url = 'https://securelinktest.valorpaytech.com:4430'; 
-        else $_valor_api_url = 'https://securelink.valorpaytech.com/';    
-			
+		if( $sandbox == "Yes" )	$_valor_api_url = self::WC_VALORPAY_SANDBOX_URL; 
+        else $_valor_api_url = self::WC_VALORPAY_URL;
+        	
         $json = json_encode($requestData);
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_URL, $_valor_api_url);
@@ -325,7 +360,8 @@ class valorpay extends ModulePayment {
         $valorpay_card_address      = $this->manager->get('valorpay-card-address');
         $valorpay_card_zip          = $this->manager->get('valorpay-card-zip');
         $valorpay_remote_address    = $this->manager->get('valorpay-remote-address');
-
+        $valorpay_stored_card_token = $this->manager->get('valorpay-stored-card-token');
+        
         $surchargeIndicator  = (MODULE_PAYMENT_VALORPAY_SURCHARGE_MODE=='Yes'?1:0);
     
         if( $surchargeIndicator != 1 ) $surchargeIndicator = 0;
@@ -357,6 +393,7 @@ class valorpay extends ModulePayment {
             'shipping_country' => $shipping["country"]["iso_code_2"],
             'cardnumber' => $valorpay_card_number,
             'status' => 'Y',
+            'token' => $valorpay_stored_card_token,
             'cvv' => $valorpay_card_cvv,
             'cardholdername' => $valorpay_card_name,
             'expirydate' => $valorpay_card_expiry_month.substr($valorpay_card_expiry_year,2,2)
@@ -391,8 +428,8 @@ class valorpay extends ModulePayment {
                 $this->manager->set('valorpay-txnid', $response->txnid);
                 $this->manager->set('valorpay-token', $response->token);
                 $this->manager->set('valorpay-rrn', $response->rrn);
-                $this->manager->set('valorpay-authcode', $response->approval_code);
-                
+                $this->manager->set('valorpay-authcode', $response->approval_code);  
+
                 return true;
 
             }
@@ -488,6 +525,39 @@ class valorpay extends ModulePayment {
                 }
 
             }
+                
+            //check if customer want to store card for future purchase
+            $valorpay_card_stored_cc = $this->manager->get('valorpay-card-stored-cc');
+
+            if( 'Yes' === MODULE_PAYMENT_VALORPAY_VAULT && $valorpay_card_stored_cc == "Y" ) {
+
+                $customer_id = \Yii::$app->user->getId();
+                
+                $_vault_customer_id = $this->get_vault_customer_id($customer_id);
+
+                //if not then create new customer valorpay vault account and get vault customer id
+                if (empty($_vault_customer_id)) {
+                    
+                    $valorpay_card_address = $this->manager->get('valorpay-card-address');
+                    $valorpay_card_zip     = $this->manager->get('valorpay-card-zip');
+
+                    $_vault_customer_id = $this->create_customer_profile( $customer_id, $order, $valorpay_card_address, $valorpay_card_zip );
+                    
+                }
+
+                //add new card to customer vault account  
+                if( $_vault_customer_id ) {
+                    
+                    $valorpay_card_number       = $this->manager->get('valorpay-card-number');
+                    $valorpay_card_expiry_month = $this->manager->get('valorpay-card-expiry-month');
+                    $valorpay_card_expiry_year  = $this->manager->get('valorpay-card-expiry-year');
+                    $valorpay_card_name         = $this->manager->get('valorpay-card-name');
+                    
+                    $this->create_payment_profile( $_vault_customer_id, $valorpay_card_number, $valorpay_card_expiry_month, $valorpay_card_expiry_year, $valorpay_card_name  );	
+                    
+                }
+
+            }
 
         }
         
@@ -503,6 +573,8 @@ class valorpay extends ModulePayment {
         $valorpay_card_cvv = $_POST['valorpay-card-cvv'];
         $valorpay_card_address = $_POST['valorpay-card-address'];
         $valorpay_card_zip = $_POST['valorpay-card-zip'];
+        $valorpay_card_stored_cc = $_POST['valorpay-card-stored-cc'];
+        $valorpay_stored_card_token = $_POST['stored-card-token'];
 
         $this->manager->set('valorpay-card-number', $valorpay_card_number);
         $this->manager->set('valorpay-card-expiry-month', $valorpay_card_expiry_month);
@@ -512,7 +584,9 @@ class valorpay extends ModulePayment {
         $this->manager->set('valorpay-card-address', $valorpay_card_address);
         $this->manager->set('valorpay-card-zip', $valorpay_card_zip);
         $this->manager->set('valorpay-remote-address', $_SERVER['REMOTE_ADDR']);
-
+        $this->manager->set('valorpay-card-stored-cc', $valorpay_card_stored_cc);
+        $this->manager->set('valorpay-stored-card-token', $valorpay_stored_card_token);
+        
     }
     
     function formatCurrencyRaw($total, $currency_code = null, $currency_value = null) {
@@ -528,6 +602,284 @@ class valorpay extends ModulePayment {
 
         return number_format(self::round($total * $currency_value, $currencies->currencies[$currency_code]['decimal_places']), $currencies->currencies[$currency_code]['decimal_places'], '.', '');
     }
+
+    /**********************************************************************************************************/
+    /******************************** V A U L T  C O D E - S T A R T  H E R E *********************************/
+    /******************************************************************************************************** */	
+	
+	/**
+	 * Get the API URL.
+	 *
+	 * @return string
+	 *
+	 * @since 1.0.0
+	 */
+	function get_valorpay_vault_url($_vault_customer_id, $list=false, $payment_id=0) {
+		$api_url = self::WC_VALORPAY_VAULT_SANDBOX_URL;
+		if ( !$_vault_customer_id && 'Yes' === MODULE_PAYMENT_VALORPAY_SANDBOX ) {
+			$api_url = self::WC_VALORPAY_VAULT_SANDBOX_URL;
+		}
+		if( $_vault_customer_id && !$list && !$payment_id ) {
+			$api_url = sprintf(self::WC_VALORPAY_VAULT_ADD_PAYMENT_PROFILE_SANDBOX_URL,$_vault_customer_id);
+			if ( 'Yes' === MODULE_PAYMENT_VALORPAY_SANDBOX ) {
+				$api_url = sprintf(self::WC_VALORPAY_VAULT_ADD_PAYMENT_PROFILE_SANDBOX_URL,$_vault_customer_id);
+			}
+		}
+		if( $_vault_customer_id && $list ) {
+			$api_url = sprintf(self::WC_VALORPAY_VAULT_GET_PAYMENT_PROFILE_SANDBOX_URL,$_vault_customer_id);
+			if ( 'Yes' === MODULE_PAYMENT_VALORPAY_SANDBOX ) {
+				$api_url = sprintf(self::WC_VALORPAY_VAULT_GET_PAYMENT_PROFILE_SANDBOX_URL,$_vault_customer_id);
+			}
+		}
+		if( $_vault_customer_id && $payment_id ) {
+			$api_url = sprintf(self::WC_VALORPAY_VAULT_DELETE_PAYMENT_PROFILE_SANDBOX_URL,$_vault_customer_id,$payment_id);
+			if ( 'Yes' === MODULE_PAYMENT_VALORPAY_SANDBOX ) {
+				$api_url = sprintf(self::WC_VALORPAY_VAULT_DELETE_PAYMENT_PROFILE_SANDBOX_URL,$_vault_customer_id,$payment_id);
+			}
+		}
+		return $api_url;
+	}
+
+	/**
+	 * Call valor API
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $payload JSON payload.
+	 * @param string $transaction_type Transaction type.
+	 * @return string|WP_Error JSON response or a WP_Error on failure.
+	 */
+	function post_vault_transaction( $payload, $_vault_customer_id=0, $list = false, $payment_id = 0 ) {
+		
+        $parsed_response = array();
+
+        if( $list ) {
+
+			$api_url  = $this->get_valorpay_vault_url($_vault_customer_id, true);
+
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $api_url);
+            if( MODULE_PAYMENT_VALORPAY_SANDBOX == "Yes" ) curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "GET");
+            curl_setopt($ch, CURLOPT_TIMEOUT, 1000);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+                'Valor-App-ID: '.MODULE_PAYMENT_VALORPAY_APIID,
+                'Valor-App-Key: '.MODULE_PAYMENT_VALORPAY_APPKEY,
+                'accept: application/json'
+            ));
+            $response = curl_exec($ch);
+            curl_close($ch);            
+            $parsed_response = json_decode($response);
+			
+		}
+		elseif( $payment_id ) {
+
+			$api_url  = $this->get_valorpay_vault_url($_vault_customer_id, false, $payment_id);
+
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $api_url);
+            if( MODULE_PAYMENT_VALORPAY_SANDBOX == "Yes" ) curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
+            curl_setopt($ch, CURLOPT_TIMEOUT, 1000);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+                'Valor-App-ID: '.MODULE_PAYMENT_VALORPAY_APIID,
+                'Valor-App-Key: '.MODULE_PAYMENT_VALORPAY_APPKEY,
+                'accept: application/json'
+            ));
+            $response = curl_exec($ch);
+            curl_close($ch);            
+            $parsed_response = json_decode($response);
+
+		}
+		else {
+		
+			$api_url  = $this->get_valorpay_vault_url($_vault_customer_id);
+			
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $api_url);
+            if( MODULE_PAYMENT_VALORPAY_SANDBOX == "Yes" ) curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 1000); 
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+                'Valor-App-ID: '.MODULE_PAYMENT_VALORPAY_APIID,
+                'Valor-App-Key: '.MODULE_PAYMENT_VALORPAY_APPKEY,
+                'accept: application/json',
+                'content-type: application/json'
+            ));
+            $response = curl_exec($ch);
+            curl_close($ch);
+            
+            $parsed_response = json_decode($response);
+
+		}
+   
+        return $parsed_response;
+	}	
+ 
+    /**
+     * Get Vault Customer ID
+     *
+     * @param int $customer_id
+     * @return $_vault_customer_id
+     */
+
+	function get_vault_customer_id($customer_id) {
+		$_vault_customer_id = 0;
+        $get_vault = tep_db_query( "select * from valorpay_vault where customer_id = ".$customer_id);
+        if ( tep_db_num_rows($get_vault) > 0 ) {
+            $vault_data = tep_db_fetch_array($get_vault);
+            $_vault_customer_id = $vault_data["vault_customer_id"];
+        }
+		return $_vault_customer_id;
+	}
+	
+    /**
+     * Create Customer Profile API Action
+     *
+     * @since 1.0.0
+     * @param $order
+     *
+     * @return object JSON response
+     */
+    function create_customer_profile( $customer_id, $order, $valorpay_card_address, $valorpay_card_zip ) {
+        
+        $billing  = $order->billing;
+        $shipping = $order->delivery;
+        $customer = $order->customer;
+
+        $valor_avs_street = ($valorpay_card_address?$valorpay_card_address:$billing["street_address"]);
+        $valor_avs_zip = ($valorpay_card_zip?$valorpay_card_zip:$billing["postcode"]);
+
+        $customer_name      = $customer["firstname"]." ".$customer["lastname"];
+        $customer_company   = ($customer["company"]==null?'':$customer["company"]);
+        $customer_phone     = $customer["telephone"];
+        $customer_email     = $customer["email_address"];
+        $billing_name       = $billing["firstname"]." ".$billing["lastname"];
+        $billing_address    = $valor_avs_street;
+        $billing_address2   = ($billing["suburb"]==null?'':$billing["suburb"]);
+        $billing_city       = ($billing["city"]==null?'':$billing["city"]);
+        $billing_state      = ($billing["state"]==null?'':$billing["state"]);
+        $billing_postcode   = $valor_avs_zip;
+        $shipping_name      = $shipping["firstname"]." ".$shipping["lastname"];
+        $shipping_address   = ($shipping["street_address"]==null?'':$shipping["street_address"]);
+        $shipping_address2  = ($shipping["suburb"]==null?'':$shipping["suburb"]);
+        $shipping_city      = ($shipping["city"]==null?'':$shipping["city"]);
+        $shipping_state     = ($shipping["state"]==null?'':$shipping["state"]);
+        $shipping_postcode  = ($shipping["postcode"]==null?'':$shipping["postcode"]);
+        
+        $zone_query = tep_db_query("select zone_code from " . TABLE_ZONES . " where zone_name = '" . $billing_state . "'");
+        while( $row = tep_db_fetch_array($zone_query) ) {
+            $billing_state = $row["zone_code"];
+        }
+        
+        $zone_query = tep_db_query("select zone_code from " . TABLE_ZONES . " where zone_name = '" . $shipping_state . "'");
+        while( $row = tep_db_fetch_array($zone_query) ) {
+            $shipping_state = $row["zone_code"];
+        }
+
+        $payload                                              = array();
+        $payload["customer_name"]                             = $customer_name;  
+        $payload["company_name"]                              = $customer_company;  
+        $payload["customer_phone"]                            = $customer_phone;  
+        $payload["customer_email"]                            = $customer_email;
+        $payload["address_details"][0]["address_label"]          = "Home";  
+        $payload["address_details"][0]["billing_customer_name"]  = $billing_name;
+        $payload["address_details"][0]["billing_street_no"]      = $billing_address;
+        $payload["address_details"][0]["billing_street_name"]    = $billing_address2;
+        $payload["address_details"][0]["billing_zip"]            = $billing_postcode;
+        $payload["address_details"][0]["billing_city"]           = $billing_city;
+        $payload["address_details"][0]["billing_state"]          = $billing_state;
+        $payload["address_details"][0]["shipping_customer_name"] = ($shipping_name?$shipping_name:$billing_name);
+        $payload["address_details"][0]["shipping_street_no"]     = ($shipping_address?$shipping_address:$billing_address);
+        $payload["address_details"][0]["shipping_street_name"]   = ($shipping_address2?$shipping_address2:($shipping_address?$billing_address2:""));
+        $payload["address_details"][0]["shipping_zip"]           = ($shipping_postcode?$shipping_postcode:$billing_postcode);
+        $payload["address_details"][0]["shipping_city"]          = ($shipping_city?$shipping_city:$billing_city);
+        $payload["address_details"][0]["shipping_state"]         = ($shipping_state?$shipping_state:$billing_state);
+        
+        $payload = json_encode( $payload );
+        $response = $this->post_vault_transaction( $payload );
+        
+        if( $response && $response->status == "OK" ) {
+
+            tep_db_query(
+                "INSERT INTO valorpay_vault (customer_id, vault_customer_id) 
+                VALUES (".$customer_id.",'".$response->vault_customer_id."')"
+            );
+
+            return $response->vault_customer_id;	
+        
+        }
+        
+        return 0;
+    
+    }
+
+    /**
+     * Create Payment Profile API Action
+     *
+     * @since 1.0.0
+     * @param int      $_vault_customer_id vault customer id.
+     * @param int      $cc_number credit card number.
+     * @param array    $exp_date credit card expiry date.
+     * @param string   $cc_holdername Card holder name.
+     *
+     * @return object JSON response
+     */	
+    function create_payment_profile( $_vault_customer_id, $cc_number, $exp_month, $exp_year, $cc_holdername ) {
+
+        $month = sprintf("%02d", $exp_month);
+        $year  = substr( $exp_year, 2 );
+
+        $payload                    = array();
+        $payload["pan_num"]         = $cc_number;  
+        $payload["expiry"]          = "$month/$year";  
+        $payload["cardholder_name"] = $cc_holdername;  
+        
+        $payload  = json_encode( $payload );
+        $response = $this->post_vault_transaction( $payload, $_vault_customer_id );
+            
+        if( $response && $response->status == "OK" ) {
+            return $response->payment_id;	
+        }
+
+        return 0;
+
+    }
+
+	/**
+	 * Get Payment Profile API Action
+	 *
+	 * @since 1.0.0
+	 * @param int      $_vault_customer_id vault customer id.
+	 *
+	 * @return object JSON response
+	 */
+	function get_payment_profile() {
+        $profiles = array();
+        $customer_id = \Yii::$app->user->getId();
+        if( $customer_id ) {
+            $_vault_customer_id = $this->get_vault_customer_id($customer_id);
+            if( $_vault_customer_id ) {
+                $payment_profile = $this->post_vault_transaction( array(), $_vault_customer_id, true );
+                if( isset($payment_profile) && $payment_profile->status == "OK" && count($payment_profile->data) > 0 ) {
+                    $k = 0;
+                    foreach($payment_profile->data as $single_key => $single_data) {
+                        if($single_data->status != "active") continue;
+                        $profiles[$k]["token"]           = $single_data->token;
+                        $profiles[$k]["card_brand"]      = $single_data->card_brand;
+                        $profiles[$k]["cardholder_name"] = $single_data->cardholder_name;
+                        $profiles[$k]["masked_pan"]      = substr($single_data->masked_pan,4); 
+                        $k++;
+                    }
+                }
+            }
+        }
+        return json_encode($profiles);
+	}
 
     function isOnline() {
         return true;
@@ -570,6 +922,13 @@ class valorpay extends ModulePayment {
                 'title' => 'Use Sandbox',
                 'value' => 'Yes',
                 'description' => 'Set No if Production Keys are set OR Set Yes if Sandbox Keys are set then Live payments will not be taken.',
+                'sort_order' => '6',
+                'set_function' => 'multiOption(\'dropdown\', array(\'Yes\', \'No\'), ',
+            ),
+            'MODULE_PAYMENT_VALORPAY_VAULT' => array(
+                'title' => 'Use Valor VAULT',
+                'value' => 'Yes',
+                'description' => 'Allow customers to securely save their card for faster checkouts in future.',
                 'sort_order' => '6',
                 'set_function' => 'multiOption(\'dropdown\', array(\'Yes\', \'No\'), ',
             ),
@@ -711,7 +1070,7 @@ class valorpay extends ModulePayment {
             }
             else {
                 tep_db_query(
-                    "INSERT ".TABLE_PLATFORMS_CONFIGURATION." (configuration_key, configuration_value, platform_id) 
+                    "INSERT INTO ".TABLE_PLATFORMS_CONFIGURATION." (configuration_key, configuration_value, platform_id) 
                     VALUES ('MODULE_PAYMENT_VALORPAY_VALIDATEKEY','No','".(int)$post['platform_id']."')"
                 );
             }
@@ -727,7 +1086,7 @@ class valorpay extends ModulePayment {
             }
             else {
                 tep_db_query(
-                    "INSERT ".TABLE_PLATFORMS_CONFIGURATION." (configuration_key, configuration_value, platform_id) 
+                    "INSERT INTO ".TABLE_PLATFORMS_CONFIGURATION." (configuration_key, configuration_value, platform_id) 
                     VALUES ('MODULE_PAYMENT_VALORPAY_VALIDATEKEY','Yes','".(int)$post['platform_id']."')"
                 );
             }
@@ -748,7 +1107,7 @@ class valorpay extends ModulePayment {
         $order_status_query = tep_db_query("SELECT orders_status_id FROM " . TABLE_ORDERS_STATUS . " WHERE orders_status_name = 'Refunded' AND language_id = '" . $languages_id . "'");
         if ( tep_db_num_rows($order_status_query) <= 0 ) {
             tep_db_query(
-                "INSERT ".TABLE_ORDERS_STATUS." (orders_status_id, orders_status_groups_id, language_id, orders_status_name, 
+                "INSERT INTO ".TABLE_ORDERS_STATUS." (orders_status_id, orders_status_groups_id, language_id, orders_status_name, 
                 orders_status_template, automated, orders_status_template_confirm, orders_status_template_sms, 
                 order_evaluation_state_id, order_evaluation_state_default, orders_status_allocate_allow, 
                 orders_status_release_deferred, orders_status_send_ga, comment_template_id, hidden) 
@@ -760,7 +1119,7 @@ class valorpay extends ModulePayment {
         $order_status_query = tep_db_query("SELECT orders_status_id FROM " . TABLE_ORDERS_STATUS . " WHERE orders_status_name = 'Partially refunded' AND language_id = '" . $languages_id . "'");
         if ( tep_db_num_rows($order_status_query) <= 0 ) {
             tep_db_query(
-                "INSERT ".TABLE_ORDERS_STATUS." (orders_status_id, orders_status_groups_id, language_id, orders_status_name, 
+                "INSERT INTO ".TABLE_ORDERS_STATUS." (orders_status_id, orders_status_groups_id, language_id, orders_status_name, 
                 orders_status_template, automated, orders_status_template_confirm, orders_status_template_sms, 
                 order_evaluation_state_id, order_evaluation_state_default, orders_status_allocate_allow, 
                 orders_status_release_deferred, orders_status_send_ga, comment_template_id, hidden) 
@@ -772,8 +1131,202 @@ class valorpay extends ModulePayment {
         if( file_exists(__DIR__."/ot_valorpay.php") && copy(__DIR__."/ot_valorpay.php",__DIR__."/../orderTotal/ot_valorpay.php") ) {
             unlink(__DIR__."/ot_valorpay.php");
         }
+
+        //copy StoredCards.php file to account folder
+        if( file_exists(__DIR__."/StoredCards.php") && copy(__DIR__."/StoredCards.php",__DIR__."/../../../frontend/design/boxes/account/StoredCards.php") ) {
+            unlink(__DIR__."/StoredCards.php");
+        }
+
+        //copy stored-cards.tpl file to account folder
+        if( file_exists(__DIR__."/stored-cards.tpl") && copy(__DIR__."/stored-cards.tpl",__DIR__."/../../../frontend/themes/basic/boxes/account/stored-cards.tpl") ) {
+            unlink(__DIR__."/stored-cards.tpl");
+        }
+
+        //all these logic are implemented for displaying "Stored Cards" menu in customer "My Account" left panel area.
+        //Logic start here
+        $microtime = time();
+        $theme_query = tep_db_query("select * from " . TABLE_THEMES);
+        while( $row = tep_db_fetch_array($theme_query) ) {
+            
+            $theme_name = $row["theme_name"];
+            
+            $install_query = tep_db_query("SELECT id FROM " . TABLE_DESIGN_BOXES . " WHERE block_name = 'stored_cards' and theme_name = '".$theme_name."' ");
+            if ( tep_db_num_rows($install_query) <= 0 ) {
+                
+                tep_db_perform(TABLE_DESIGN_BOXES, array(
+                    'microtime' => $microtime,
+                    'theme_name' => $theme_name,
+                    'block_name' => 'block-160483',
+                    'widget_name' => 'account\\AccountLink',
+                    'widget_params' => '',
+                    'sort_order' => 14
+                ));
+                $box_id1 = tep_db_insert_id();
+
+                tep_db_perform(TABLE_DESIGN_BOXES, array(
+                    'microtime' => $microtime,
+                    'theme_name' => $theme_name,
+                    'block_name' => 'stored_cards',
+                    'widget_name' => 'BlockBox',
+                    'widget_params' => '',
+                    'sort_order' => 1
+                ));
+                $box_id2 = tep_db_insert_id();
+
+                tep_db_perform(TABLE_DESIGN_BOXES, array(
+                    'microtime' => $microtime,
+                    'theme_name' => $theme_name,
+                    'block_name' => 'block-'.$box_id2,
+                    'widget_name' => 'BlockBox',
+                    'widget_params' => '',
+                    'sort_order' => 1
+                ));
+                $box_id3 = tep_db_insert_id();
+
+                tep_db_perform(TABLE_DESIGN_BOXES, array(
+                    'microtime' => $microtime,
+                    'theme_name' => $theme_name,
+                    'block_name' => 'block-'.$box_id3,
+                    'widget_name' => 'WidgetsAria',
+                    'widget_params' => '',
+                    'sort_order' => 1
+                ));
+                $box_id4 = tep_db_insert_id();
+
+                tep_db_perform(TABLE_DESIGN_BOXES, array(
+                    'microtime' => $microtime,
+                    'theme_name' => $theme_name,
+                    'block_name' => 'block-'.$box_id3.'-2',
+                    'widget_name' => 'account\\StoredCards',
+                    'widget_params' => '',
+                    'sort_order' => 2
+                ));
+                $box_id5 = tep_db_insert_id();
+
+                tep_db_perform(TABLE_DESIGN_BOXES, array(
+                    'microtime' => $microtime,
+                    'theme_name' => $theme_name,
+                    'block_name' => 'block-'.$box_id3.'-2',
+                    'widget_name' => 'Html_box',
+                    'widget_params' => '',
+                    'sort_order' => 1
+                ));
+                $box_id6 = tep_db_insert_id();
+                
+                tep_db_perform(TABLE_DESIGN_BOXES_SETTINGS, array(
+                    'box_id' => $box_id2,
+                    'microtime' => $microtime,
+                    'theme_name' => $theme_name,
+                    'setting_name' => 'block_type',
+                    'setting_value' => '1',
+                    'language_id' => 0,
+                    'visibility' => ''
+                ));
+                
+                tep_db_perform(TABLE_DESIGN_BOXES_SETTINGS, array(
+                    'box_id' => $box_id3,
+                    'microtime' => $microtime,
+                    'theme_name' => $theme_name,
+                    'setting_name' => 'block_type',
+                    'setting_value' => '6',
+                    'language_id' => 0,
+                    'visibility' => ''
+                ));
+                
+                tep_db_perform(TABLE_DESIGN_BOXES_SETTINGS, array(
+                    'box_id' => $box_id3,
+                    'microtime' => $microtime,
+                    'theme_name' => $theme_name,
+                    'setting_name' => 'schema',
+                    'setting_value' => '6-3',
+                    'language_id' => 0,
+                    'visibility' => ''
+                ));
+                
+                tep_db_perform(TABLE_DESIGN_BOXES_SETTINGS, array(
+                    'box_id' => $box_id4,
+                    'microtime' => $microtime,
+                    'theme_name' => $theme_name,
+                    'setting_name' => 'aria_name',
+                    'setting_value' => 'account-menu',
+                    'language_id' => 0,
+                    'visibility' => ''
+                ));
+                
+                tep_db_perform(TABLE_DESIGN_BOXES_SETTINGS, array(
+                    'box_id' => $box_id6,
+                    'microtime' => $microtime,
+                    'theme_name' => $theme_name,
+                    'setting_name' => 'text',
+                    'setting_value' => '<h1>STORED CARDS</h1>',
+                    'language_id' => 0,
+                    'visibility' => ''
+                ));
+                
+                tep_db_perform(TABLE_DESIGN_BOXES_SETTINGS, array(
+                    'box_id' => $box_id1,
+                    'microtime' => $microtime,
+                    'theme_name' => $theme_name,
+                    'setting_name' => 'link',
+                    'setting_value' => 'Stored Cards',
+                    'language_id' => 0,
+                    'visibility' => ''
+                ));
+                
+                tep_db_perform(TABLE_DESIGN_BOXES_SETTINGS, array(
+                    'box_id' => $box_id1,
+                    'microtime' => $microtime,
+                    'theme_name' => $theme_name,
+                    'setting_name' => 'text',
+                    'setting_value' => 'TEXT_STORED_CARDS',
+                    'language_id' => 0,
+                    'visibility' => ''
+                ));
+                
+                $json_string = '[{"id":'.$box_id2.',"microtime":"'.$microtime.'","theme_name":"'.$theme_name.'","block_name":"stored_cards","widget_name":"BlockBox","widget_params":"","sort_order":1,"settings":{"0":{"block_type":"1","params":""},"colInRowCarousel":null},"children":{"block-'.$box_id2.'":[{"id":'.$box_id3.',"microtime":"'.$microtime.'","theme_name":"'.$theme_name.'","block_name":"block-'.$box_id2.'","widget_name":"BlockBox","widget_params":"","sort_order":1,"settings":{"0":{"block_type":"6","schema":"6-3","params":""},"colInRowCarousel":null},"children":{"block-'.$box_id3.'":[{"id":'.$box_id4.',"microtime":"'.$microtime.'","theme_name":"'.$theme_name.'","block_name":"block-'.$box_id3.'","widget_name":"WidgetsAria","widget_params":"","sort_order":1,"settings":{"0":{"aria_name":"account-menu","params":""},"colInRowCarousel":null}}],"block-'.$box_id3.'-2":[{"id":'.$box_id6.',"microtime":"'.$microtime.'","theme_name":"'.$theme_name.'","block_name":"block-'.$box_id3.'-2","widget_name":"Html_box","widget_params":"","sort_order":1,"settings":{"0":{"text":"<h1>STORED CARDS<\/h1>","params":""},"colInRowCarousel":null}},{"id":'.$box_id5.',"microtime":"'.$microtime.'","theme_name":"'.$theme_name.'","block_name":"block-'.$box_id3.'-2","widget_name":"account\\StoredCards","widget_params":"","sort_order":2,"settings":{"0":{"params":""},"colInRowCarousel":null}}]}}]}}]';
+
+                tep_db_perform('design_boxes_cache', array(
+                    'block_name' => 'stored_cards',
+                    'theme_name' => $theme_name,
+                    'json' => $json_string,
+                    'serialize' => '',
+                    'date_modified' => date("Y-m-d H:i:s")
+                ));
+
+            }
+            
+        }
+
+        //check if plugin translation key already exist or create new
+        $install_query = tep_db_query("SELECT language_id FROM " . TABLE_TRANSLATION . " WHERE translation_key = 'TEXT_STORED_CARDS'");
+        if ( tep_db_num_rows($install_query) <= 0 ) {
+
+            tep_db_perform(TABLE_TRANSLATION, array(
+                'language_id' => 1,
+                'translation_key' => 'TEXT_STORED_CARDS',
+                'translation_entity' => 'account',
+                'translation_value' => 'Stored Cards',
+                'hash' => '0ac48407db45272aa1c1c5ba4ba7025d',
+                'not_used' => 0,
+                'translated' => 1, 
+                'checked' => 1
+            ));
+
+        }
+        //Logic end here
         
+        //check if table already exist or create new
+        $install_query = tep_db_query("Show tables like 'valorpay_vault'");
+        if ( tep_db_num_rows($install_query) <= 0 ) {
+        
+            tep_db_query("CREATE TABLE `valorpay_vault` (`customer_id` int(11) NOT NULL, `vault_customer_id` int(11) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;");
+        
+            tep_db_query("ALTER TABLE `valorpay_vault` ADD PRIMARY KEY (`customer_id`,`vault_customer_id`);");
+        
+        }
+
         parent::install($platform_id);
+
     }
 
     public function describe_status_key() {

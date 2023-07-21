@@ -13,9 +13,7 @@ This is a Payment Module for OsCommerce v4, that gives you the ability to proces
 
 ## Installation (App Shop / Local Storage)
 
-  * [Download the Payment Module archive](https://github.com/ValorPay/plugin-oscommerce/archive/refs/heads/main.zip), unpack it.
-  
-  * Navigate to ```plugin-oscommerce-main\plugin-oscommerce-main``` folder then pack its contents and give zip file name ```plugin-oscommerce.zip``` 
+  * [Download the Payment Module archive](https://github.com/ValorPayTech/plugin-oscommerce/releases/download/1.0.1/plugin-oscommerce.zip).
   
   * Upload ```plugin-oscommerce.zip``` to a ```App Shop / Local Storage```
 
@@ -23,11 +21,15 @@ This is a Payment Module for OsCommerce v4, that gives you the ability to proces
 
 ## Installation (Manual)
 
-  * [Download the Payment Module archive](https://github.com/ValorPay/plugin-oscommerce/archive/refs/heads/main.zip), unpack it.
+  * [Download the Payment Module archive](https://github.com/ValorPayTech/plugin-oscommerce/releases/download/1.0.1/plugin-oscommerce.zip), unpack it.
   
-  * Navigate project folder ```lib\common\modules\orderPayment``` and upload unpack contents from ```plugin-oscommerce-main\plugin-oscommerce-main``` there.
+  * Navigate project folder ```lib\common\modules\orderPayment``` and upload unpack contents from ```plugin-oscommerce-main``` there.
 
   * Move file ```ot_valorpay.php``` from ```lib\common\modules\orderPayment``` to  ```lib\common\modules\orderTotal``` if installer doesn't move.
+
+  * Move file ```StoredCards.php``` from ```lib\common\modules\orderPayment``` to  ```lib\frontend\design\boxes\account``` if installer doesn't move.
+
+  * Move file ```stored-cards.tpl``` from ```lib\common\modules\orderPayment``` to  ```lib\frontend\themes\basic\boxes\account``` if installer doesn't move.
 
 ## Deletion 
 
@@ -35,7 +37,14 @@ This is a Payment Module for OsCommerce v4, that gives you the ability to proces
 
   * For Manual Navigate folder ```lib\common\modules\orderPayment``` delete valorpay folder and file from there
 
-  * Go to ```lib\common\modules\orderTotal``` delete ot_valorpay.php from there. 
+  * Go to ```lib\common\modules\orderTotal``` delete ot_valorpay.php from there.
+
+  * Go to ```lib\frontend\design\boxes\account``` delete StoredCards.php from there.
+
+  * Go to ```lib\frontend\themes\basic\boxes\account``` delete stored-cards.tpl from there. 
+
+  * Remove Stored Cards Block references from these tables TABLE_DESIGN_BOXES, TABLE_DESIGN_BOXES_SETTINGS, design_boxes_cache    
+    TABLE_TRANSLATION
 
 ## Configuration
 

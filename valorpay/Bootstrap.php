@@ -29,7 +29,6 @@ class Bootstrap implements BootstrapInterface {
                                     'valorpay' => ['class' => __NAMESPACE__ . '\backend\controllers\ValorpayController'],
                                 ]);
             }
-
         }
     }
 

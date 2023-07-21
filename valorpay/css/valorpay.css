@@ -44,12 +44,42 @@
   background-color:#f2f2f2;
   padding:20px;
 }
+#valorCcBox #valorpay-card-stored-cc {
+  margin-right:5px;
+}
 #valorCcBox .col-25 {
   width:36%;
+  margin-right:4%;
   position:relative;
 }
 #valorCcBox .col-75 {
-  width:60%;
+  width:56%;
+}
+#valorCcBox .col-100 {
+  width:96%;
+}
+#valorCcBox .stored-card-li {
+  cursor: pointer;
+}
+#valorCcBox .valorpay-card-head, #valorCcBox .valorpay-card-head label {
+  cursor: pointer;
+  font-weight: bold;
+}
+#valorCcBox .row-new-card {
+  margin-top: 10px;
+  border-top: 1px solid #ccc;
+}
+#valorCcBox #stored-cards-panel {
+  margin-left:4%;
+  width:96%;
+}
+#valorCcBox #stored-cards-panel ul {
+  list-style:none;
+} 
+#valorCcBox #new-card-panel {
+  display:block;
+  margin-left:4%;
+  width:96%;
 }
 #valorCcBox .col-50-1 {
   float:left;

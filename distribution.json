@@ -2,7 +2,7 @@
     "name": "ValorPay",
     "description": "This is a Payment Module for Oscommerce, that gives you the ability to process payments through payment service providers running on ValorPayTech platform.",
     "type": "payment",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "authors": [
         {
             "name": "ValorPayTech",
@@ -21,6 +21,16 @@
             "action": "add",
             "type": "file",
             "path": "ot_valorpay.php"
+        },
+        {
+            "action": "add",
+            "type": "file",
+            "path": "StoredCards.php"
+        },
+        {
+            "action": "add",
+            "type": "file",
+            "path": "stored-cards.tpl"
         },
         {
             "action": "copy",
