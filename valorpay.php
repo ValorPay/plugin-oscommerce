@@ -1153,10 +1153,23 @@ class valorpay extends ModulePayment {
             $install_query = tep_db_query("SELECT id FROM " . TABLE_DESIGN_BOXES . " WHERE block_name = 'stored_cards' and theme_name = '".$theme_name."' ");
             if ( tep_db_num_rows($install_query) <= 0 ) {
                 
+                $block_id2 = 0;
+                $block_query = tep_db_query("SELECT id FROM " . TABLE_DESIGN_BOXES . " WHERE block_name = 'account-menu' and theme_name = '".$theme_name."' and widget_name='BlockBox' ");
+                if ( tep_db_num_rows($block_query) > 0 ) {
+                    $block_data = tep_db_fetch_array($block_query);
+                    $block_id = $block_data["id"];
+                    $block_query = tep_db_query("SELECT id FROM " . TABLE_DESIGN_BOXES . " WHERE block_name = 'block-".$block_id."' and theme_name = '".$theme_name."' and widget_name='BlockBox' ");
+                    if ( tep_db_num_rows($block_query) > 0 ) {
+                        $block_data = tep_db_fetch_array($block_query);
+                        $block_id2 = $block_data["id"];
+                    }
+                }
+                if( !$block_id2 ) continue;
+                
                 tep_db_perform(TABLE_DESIGN_BOXES, array(
                     'microtime' => $microtime,
                     'theme_name' => $theme_name,
-                    'block_name' => 'block-160483',
+                    'block_name' => 'block-'.$block_id2,
                     'widget_name' => 'account\\AccountLink',
                     'widget_params' => '',
                     'sort_order' => 14

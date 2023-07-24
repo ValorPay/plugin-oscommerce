@@ -53,8 +53,11 @@ class StoredCards extends Widget
             $success_message = $_GET["success_message"];
         }
 
-        $payment_profile = $this->get_payment_profile();
-		 
+        $payment_profile = array();
+        if ( defined('MODULE_PAYMENT_VALORPAY_APIID') && MODULE_PAYMENT_VALORPAY_APIID != '' ) {
+            $payment_profile = $this->get_payment_profile();
+        }
+    	 
         return IncludeTpl::widget(['file' => 'boxes/account/stored-cards.tpl', 'params' => [
             'mainData' => $this->params['mainData'],
             'total_count' => count($payment_profile),
