@@ -870,7 +870,7 @@ class valorpay extends ModulePayment {
                     foreach($payment_profile->data as $single_key => $single_data) {
                         if($single_data->status != "active") continue;
                         $profiles[$k]["token"]           = $single_data->token;
-                        $profiles[$k]["card_brand"]      = $single_data->card_brand;
+                        $profiles[$k]["card_brand"]      = ($single_data->card_brand=="Unknown"?"Diners":$single_data->card_brand);
                         $profiles[$k]["cardholder_name"] = $single_data->cardholder_name;
                         $profiles[$k]["masked_pan"]      = substr($single_data->masked_pan,4); 
                         $k++;
