@@ -22,7 +22,7 @@
                             <span class="order-number">{$profile["cardholder_name"]}</span>
                         </td>
                         <td class="products">
-                            <span class="order-number"><img width="75px" src="{$brand_logo_path}/{strtolower($profile["card_brand"])}.png" title="{$profile["card_brand"]}" /></span>
+                            <span class="order-number"><img width="75px" src="{$brand_logo_path}/{strtolower($profile["card_brand"]=="Unknown"?"Diners":$profile["card_brand"])}.png" title="{($profile["card_brand"]=="Unknown"?"Diners":$profile["card_brand"])}" /></span>
                         </td>
                         <td class="links td-alignright">
                             <a class="view_link" data-js-confirm="Are you sure you want to delete the card ending in {$profile["masked_pan"]}?" href="{$profile["delete_url"]}">Delete</a>
