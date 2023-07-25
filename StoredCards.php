@@ -55,7 +55,17 @@ class StoredCards extends Widget
 
         $payment_profile = array();
         if ( defined('MODULE_PAYMENT_VALORPAY_APIID') && MODULE_PAYMENT_VALORPAY_APIID != '' ) {
-            $payment_profile = $this->get_payment_profile();
+            $tp_payment_profile = $this->get_payment_profile();
+            if( count($tp_payment_profile) > 0 ) {
+                $i=0;
+                foreach($tp_payment_profile as $profile) {
+                    foreach($profile as $key=>$value) {
+                        if( $key == "card_brand" && $value == "Unknown" ) $value = "Diners";
+                        $payment_profile[$i][$key]=$value;
+                    }
+                    $i++;
+                }
+            }
         }
     	 
         return IncludeTpl::widget(['file' => 'boxes/account/stored-cards.tpl', 'params' => [
