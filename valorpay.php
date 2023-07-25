@@ -1150,21 +1150,73 @@ class valorpay extends ModulePayment {
             
             $theme_name = $row["theme_name"];
             
-            $install_query = tep_db_query("SELECT id FROM " . TABLE_DESIGN_BOXES . " WHERE block_name = 'stored_cards' and theme_name = '".$theme_name."' ");
-            if ( tep_db_num_rows($install_query) <= 0 ) {
-                
-                $block_id2 = 0;
-                $block_query = tep_db_query("SELECT id FROM " . TABLE_DESIGN_BOXES . " WHERE block_name = 'account-menu' and theme_name = '".$theme_name."' and widget_name='BlockBox' ");
+            $block_id2 = 0;
+            $block_query = tep_db_query("SELECT id FROM " . TABLE_DESIGN_BOXES . " WHERE block_name = 'account-menu' and theme_name = '".$theme_name."' and widget_name='BlockBox' ");
+            if ( tep_db_num_rows($block_query) > 0 ) {
+                $block_data = tep_db_fetch_array($block_query);
+                $block_id = $block_data["id"];
+                $block_query = tep_db_query("SELECT id FROM " . TABLE_DESIGN_BOXES . " WHERE block_name = 'block-".$block_id."' and theme_name = '".$theme_name."' and widget_name='BlockBox' ");
                 if ( tep_db_num_rows($block_query) > 0 ) {
                     $block_data = tep_db_fetch_array($block_query);
-                    $block_id = $block_data["id"];
-                    $block_query = tep_db_query("SELECT id FROM " . TABLE_DESIGN_BOXES . " WHERE block_name = 'block-".$block_id."' and theme_name = '".$theme_name."' and widget_name='BlockBox' ");
-                    if ( tep_db_num_rows($block_query) > 0 ) {
-                        $block_data = tep_db_fetch_array($block_query);
-                        $block_id2 = $block_data["id"];
-                    }
+                    $block_id2 = $block_data["id"];
                 }
-                if( !$block_id2 ) continue;
+            }
+            if( !$block_id2 ) continue;
+            
+            $block_query = tep_db_query("SELECT id FROM " . TABLE_DESIGN_BOXES . " WHERE block_name = 'block-".$block_id2."' and widget_name = 'account\\AccountLink' and theme_name = '".$theme_name."' ");
+            if ( tep_db_num_rows($block_query) > 0 ) {
+                $block_data = tep_db_fetch_array($block_query);
+                $block_id3 = $block_data["id"];
+            }
+            
+            $block_query = tep_db_query("SELECT id FROM " . TABLE_DESIGN_BOXES . " WHERE block_name = 'stored_cards' and widget_name = 'BlockBox' and theme_name = '".$theme_name."' ");
+            if ( tep_db_num_rows($block_query) > 0 ) {
+                $block_data = tep_db_fetch_array($block_query);
+                $block_id4 = $block_data["id"];
+            }
+            
+            $block_query = tep_db_query("SELECT id FROM " . TABLE_DESIGN_BOXES . " WHERE block_name = 'block-".$block_id4."' and widget_name = 'BlockBox' and theme_name = '".$theme_name."' ");
+            if ( tep_db_num_rows($block_query) > 0 ) {
+                $block_data = tep_db_fetch_array($block_query);
+                $block_id5 = $block_data["id"];
+            }
+            
+            $block_query = tep_db_query("SELECT id FROM " . TABLE_DESIGN_BOXES . " WHERE block_name = 'block-".$block_id5."' and widget_name = 'WidgetsAria' and theme_name = '".$theme_name."' ");
+            if ( tep_db_num_rows($block_query) > 0 ) {
+                $block_data = tep_db_fetch_array($block_query);
+                $block_id6 = $block_data["id"];
+            }
+            
+            $block_query = tep_db_query("SELECT id FROM " . TABLE_DESIGN_BOXES . " WHERE block_name = 'block-".$block_id5."-2' and widget_name = 'account\\StoredCards' and theme_name = '".$theme_name."' ");
+            if ( tep_db_num_rows($block_query) > 0 ) {
+                $block_data = tep_db_fetch_array($block_query);
+                $block_id7 = $block_data["id"];
+            }
+            
+            $block_query = tep_db_query("SELECT id FROM " . TABLE_DESIGN_BOXES . " WHERE block_name = 'block-".$block_id5."-2' and widget_name = 'Html_box' and theme_name = '".$theme_name."' ");
+            if ( tep_db_num_rows($block_query) > 0 ) {
+                $block_data = tep_db_fetch_array($block_query);
+                $block_id8 = $block_data["id"];
+            }
+            
+            tep_db_query("DELETE FROM " . TABLE_DESIGN_BOXES_SETTINGS . " WHERE box_id = '".$block_id3."'");
+            tep_db_query("DELETE FROM " . TABLE_DESIGN_BOXES_SETTINGS . " WHERE box_id = '".$block_id4."'");
+            tep_db_query("DELETE FROM " . TABLE_DESIGN_BOXES_SETTINGS . " WHERE box_id = '".$block_id5."'");
+            tep_db_query("DELETE FROM " . TABLE_DESIGN_BOXES_SETTINGS . " WHERE box_id = '".$block_id6."'");
+            tep_db_query("DELETE FROM " . TABLE_DESIGN_BOXES_SETTINGS . " WHERE box_id = '".$block_id7."'");
+            tep_db_query("DELETE FROM " . TABLE_DESIGN_BOXES_SETTINGS . " WHERE box_id = '".$block_id8."'");
+            tep_db_query("DELETE FROM design_boxes_cache WHERE block_name = 'stored_cards'");
+            tep_db_query("DELETE FROM design_boxes_cache WHERE block_name = 'account-menu'");
+            
+            tep_db_query("DELETE FROM " . TABLE_DESIGN_BOXES . " WHERE id = '".$block_id3."'");
+            tep_db_query("DELETE FROM " . TABLE_DESIGN_BOXES . " WHERE id = '".$block_id4."'");
+            tep_db_query("DELETE FROM " . TABLE_DESIGN_BOXES . " WHERE id = '".$block_id5."'");
+            tep_db_query("DELETE FROM " . TABLE_DESIGN_BOXES . " WHERE id = '".$block_id6."'");
+            tep_db_query("DELETE FROM " . TABLE_DESIGN_BOXES . " WHERE id = '".$block_id7."'");
+            tep_db_query("DELETE FROM " . TABLE_DESIGN_BOXES . " WHERE id = '".$block_id8."'");
+
+            $install_query = tep_db_query("SELECT id FROM " . TABLE_DESIGN_BOXES . " WHERE block_name = 'stored_cards' and theme_name = '".$theme_name."' ");
+            if ( tep_db_num_rows($install_query) <= 0 ) {
                 
                 tep_db_perform(TABLE_DESIGN_BOXES, array(
                     'microtime' => $microtime,
