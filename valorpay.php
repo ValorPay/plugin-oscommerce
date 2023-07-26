@@ -1145,9 +1145,9 @@ class valorpay extends ModulePayment {
         //all these logic are implemented for displaying "Stored Cards" menu in customer "My Account" left panel area.
         //Logic start here
         $microtime = time();
-        $theme_query = tep_db_query("select * from " . TABLE_THEMES);
-        while( $row = tep_db_fetch_array($theme_query) ) {
-            
+        $theme_query = tep_db_query("select a.theme_name from " . TABLE_THEMES . " a, " . TABLE_PLATFORMS_TO_THEMES . " b where a.id=b.theme_id and b.platform_id=".$platform_id);
+        if ( tep_db_num_rows($theme_query) > 0 ) {
+            $row = tep_db_fetch_array($theme_query);
             $theme_name = $row["theme_name"];
             
             $block_id2 = 0;
@@ -1161,205 +1161,192 @@ class valorpay extends ModulePayment {
                     $block_id2 = $block_data["id"];
                 }
             }
-            if( !$block_id2 ) continue;
             
-            $block_query = tep_db_query("SELECT id FROM " . TABLE_DESIGN_BOXES . " WHERE block_name = 'block-".$block_id2."' and widget_name = 'account\\AccountLink' and theme_name = '".$theme_name."' ");
-            if ( tep_db_num_rows($block_query) > 0 ) {
-                $block_data = tep_db_fetch_array($block_query);
-                $block_id3 = $block_data["id"];
+            if( $block_id2 ) {
+            
+                $block_query = tep_db_query("SELECT id FROM " . TABLE_DESIGN_BOXES . " WHERE block_name = 'block-".$block_id2."' and widget_name = 'account\\AccountLink' and theme_name = '".$theme_name."' ");
+                if ( tep_db_num_rows($block_query) > 0 ) {
+                    $block_data = tep_db_fetch_array($block_query);
+                    $block_id3 = $block_data["id"];
+                }
+                
+                $block_query = tep_db_query("SELECT id FROM " . TABLE_DESIGN_BOXES . " WHERE block_name = 'stored_cards' and widget_name = 'BlockBox' and theme_name = '".$theme_name."' ");
+                if ( tep_db_num_rows($block_query) > 0 ) {
+                    $block_data = tep_db_fetch_array($block_query);
+                    $block_id4 = $block_data["id"];
+                }
+                
+                $block_query = tep_db_query("SELECT id FROM " . TABLE_DESIGN_BOXES . " WHERE block_name = 'block-".$block_id4."' and widget_name = 'BlockBox' and theme_name = '".$theme_name."' ");
+                if ( tep_db_num_rows($block_query) > 0 ) {
+                    $block_data = tep_db_fetch_array($block_query);
+                    $block_id5 = $block_data["id"];
+                }
+                
+                $block_query = tep_db_query("SELECT id FROM " . TABLE_DESIGN_BOXES . " WHERE block_name = 'block-".$block_id5."' and widget_name = 'WidgetsAria' and theme_name = '".$theme_name."' ");
+                if ( tep_db_num_rows($block_query) > 0 ) {
+                    $block_data = tep_db_fetch_array($block_query);
+                    $block_id6 = $block_data["id"];
+                }
+                
+                $block_query = tep_db_query("SELECT id FROM " . TABLE_DESIGN_BOXES . " WHERE block_name = 'block-".$block_id5."-2' and widget_name = 'account\\StoredCards' and theme_name = '".$theme_name."' ");
+                if ( tep_db_num_rows($block_query) > 0 ) {
+                    $block_data = tep_db_fetch_array($block_query);
+                    $block_id7 = $block_data["id"];
+                }
+                
+                $block_query = tep_db_query("SELECT id FROM " . TABLE_DESIGN_BOXES . " WHERE block_name = 'block-".$block_id5."-2' and widget_name = 'Html_box' and theme_name = '".$theme_name."' ");
+                if ( tep_db_num_rows($block_query) > 0 ) {
+                    $block_data = tep_db_fetch_array($block_query);
+                    $block_id8 = $block_data["id"];
+                }
+                
+                $install_query = tep_db_query("SELECT id FROM " . TABLE_DESIGN_BOXES . " WHERE block_name = 'stored_cards' and theme_name = '".$theme_name."' ");
+                if ( tep_db_num_rows($install_query) <= 0 ) {
+                    
+                    tep_db_perform(TABLE_DESIGN_BOXES, array(
+                        'microtime' => $microtime,
+                        'theme_name' => $theme_name,
+                        'block_name' => 'block-'.$block_id2,
+                        'widget_name' => 'account\\AccountLink',
+                        'widget_params' => '',
+                        'sort_order' => 14
+                    ));
+                    $box_id1 = tep_db_insert_id();
+
+                    tep_db_perform(TABLE_DESIGN_BOXES, array(
+                        'microtime' => $microtime,
+                        'theme_name' => $theme_name,
+                        'block_name' => 'stored_cards',
+                        'widget_name' => 'BlockBox',
+                        'widget_params' => '',
+                        'sort_order' => 1
+                    ));
+                    $box_id2 = tep_db_insert_id();
+
+                    tep_db_perform(TABLE_DESIGN_BOXES, array(
+                        'microtime' => $microtime,
+                        'theme_name' => $theme_name,
+                        'block_name' => 'block-'.$box_id2,
+                        'widget_name' => 'BlockBox',
+                        'widget_params' => '',
+                        'sort_order' => 1
+                    ));
+                    $box_id3 = tep_db_insert_id();
+
+                    tep_db_perform(TABLE_DESIGN_BOXES, array(
+                        'microtime' => $microtime,
+                        'theme_name' => $theme_name,
+                        'block_name' => 'block-'.$box_id3,
+                        'widget_name' => 'WidgetsAria',
+                        'widget_params' => '',
+                        'sort_order' => 1
+                    ));
+                    $box_id4 = tep_db_insert_id();
+
+                    tep_db_perform(TABLE_DESIGN_BOXES, array(
+                        'microtime' => $microtime,
+                        'theme_name' => $theme_name,
+                        'block_name' => 'block-'.$box_id3.'-2',
+                        'widget_name' => 'account\\StoredCards',
+                        'widget_params' => '',
+                        'sort_order' => 2
+                    ));
+                    $box_id5 = tep_db_insert_id();
+
+                    tep_db_perform(TABLE_DESIGN_BOXES, array(
+                        'microtime' => $microtime,
+                        'theme_name' => $theme_name,
+                        'block_name' => 'block-'.$box_id3.'-2',
+                        'widget_name' => 'Html_box',
+                        'widget_params' => '',
+                        'sort_order' => 1
+                    ));
+                    $box_id6 = tep_db_insert_id();
+                    
+                    tep_db_perform(TABLE_DESIGN_BOXES_SETTINGS, array(
+                        'box_id' => $box_id2,
+                        'microtime' => $microtime,
+                        'theme_name' => $theme_name,
+                        'setting_name' => 'block_type',
+                        'setting_value' => '1',
+                        'language_id' => 0,
+                        'visibility' => ''
+                    ));
+                    
+                    tep_db_perform(TABLE_DESIGN_BOXES_SETTINGS, array(
+                        'box_id' => $box_id3,
+                        'microtime' => $microtime,
+                        'theme_name' => $theme_name,
+                        'setting_name' => 'block_type',
+                        'setting_value' => '6',
+                        'language_id' => 0,
+                        'visibility' => ''
+                    ));
+                    
+                    tep_db_perform(TABLE_DESIGN_BOXES_SETTINGS, array(
+                        'box_id' => $box_id3,
+                        'microtime' => $microtime,
+                        'theme_name' => $theme_name,
+                        'setting_name' => 'schema',
+                        'setting_value' => '6-3',
+                        'language_id' => 0,
+                        'visibility' => ''
+                    ));
+                    
+                    tep_db_perform(TABLE_DESIGN_BOXES_SETTINGS, array(
+                        'box_id' => $box_id4,
+                        'microtime' => $microtime,
+                        'theme_name' => $theme_name,
+                        'setting_name' => 'aria_name',
+                        'setting_value' => 'account-menu',
+                        'language_id' => 0,
+                        'visibility' => ''
+                    ));
+                    
+                    tep_db_perform(TABLE_DESIGN_BOXES_SETTINGS, array(
+                        'box_id' => $box_id6,
+                        'microtime' => $microtime,
+                        'theme_name' => $theme_name,
+                        'setting_name' => 'text',
+                        'setting_value' => '<h1>STORED CARDS</h1>',
+                        'language_id' => 0,
+                        'visibility' => ''
+                    ));
+                    
+                    tep_db_perform(TABLE_DESIGN_BOXES_SETTINGS, array(
+                        'box_id' => $box_id1,
+                        'microtime' => $microtime,
+                        'theme_name' => $theme_name,
+                        'setting_name' => 'link',
+                        'setting_value' => 'Stored Cards',
+                        'language_id' => 0,
+                        'visibility' => ''
+                    ));
+                    
+                    tep_db_perform(TABLE_DESIGN_BOXES_SETTINGS, array(
+                        'box_id' => $box_id1,
+                        'microtime' => $microtime,
+                        'theme_name' => $theme_name,
+                        'setting_name' => 'text',
+                        'setting_value' => 'TEXT_STORED_CARDS',
+                        'language_id' => 0,
+                        'visibility' => ''
+                    ));
+                    
+                    $json_string = '[{"id":'.$box_id2.',"microtime":"'.$microtime.'","theme_name":"'.$theme_name.'","block_name":"stored_cards","widget_name":"BlockBox","widget_params":"","sort_order":1,"settings":{"0":{"block_type":"1","params":""},"colInRowCarousel":null},"children":{"block-'.$box_id2.'":[{"id":'.$box_id3.',"microtime":"'.$microtime.'","theme_name":"'.$theme_name.'","block_name":"block-'.$box_id2.'","widget_name":"BlockBox","widget_params":"","sort_order":1,"settings":{"0":{"block_type":"6","schema":"6-3","params":""},"colInRowCarousel":null},"children":{"block-'.$box_id3.'":[{"id":'.$box_id4.',"microtime":"'.$microtime.'","theme_name":"'.$theme_name.'","block_name":"block-'.$box_id3.'","widget_name":"WidgetsAria","widget_params":"","sort_order":1,"settings":{"0":{"aria_name":"account-menu","params":""},"colInRowCarousel":null}}],"block-'.$box_id3.'-2":[{"id":'.$box_id6.',"microtime":"'.$microtime.'","theme_name":"'.$theme_name.'","block_name":"block-'.$box_id3.'-2","widget_name":"Html_box","widget_params":"","sort_order":1,"settings":{"0":{"text":"<h1>STORED CARDS<\/h1>","params":""},"colInRowCarousel":null}},{"id":'.$box_id5.',"microtime":"'.$microtime.'","theme_name":"'.$theme_name.'","block_name":"block-'.$box_id3.'-2","widget_name":"account\\StoredCards","widget_params":"","sort_order":2,"settings":{"0":{"params":""},"colInRowCarousel":null}}]}}]}}]';
+
+                    tep_db_perform('design_boxes_cache', array(
+                        'block_name' => 'stored_cards',
+                        'theme_name' => $theme_name,
+                        'json' => $json_string,
+                        'serialize' => '',
+                        'date_modified' => date("Y-m-d H:i:s")
+                    ));
+
+                }
+            
             }
-            
-            $block_query = tep_db_query("SELECT id FROM " . TABLE_DESIGN_BOXES . " WHERE block_name = 'stored_cards' and widget_name = 'BlockBox' and theme_name = '".$theme_name."' ");
-            if ( tep_db_num_rows($block_query) > 0 ) {
-                $block_data = tep_db_fetch_array($block_query);
-                $block_id4 = $block_data["id"];
-            }
-            
-            $block_query = tep_db_query("SELECT id FROM " . TABLE_DESIGN_BOXES . " WHERE block_name = 'block-".$block_id4."' and widget_name = 'BlockBox' and theme_name = '".$theme_name."' ");
-            if ( tep_db_num_rows($block_query) > 0 ) {
-                $block_data = tep_db_fetch_array($block_query);
-                $block_id5 = $block_data["id"];
-            }
-            
-            $block_query = tep_db_query("SELECT id FROM " . TABLE_DESIGN_BOXES . " WHERE block_name = 'block-".$block_id5."' and widget_name = 'WidgetsAria' and theme_name = '".$theme_name."' ");
-            if ( tep_db_num_rows($block_query) > 0 ) {
-                $block_data = tep_db_fetch_array($block_query);
-                $block_id6 = $block_data["id"];
-            }
-            
-            $block_query = tep_db_query("SELECT id FROM " . TABLE_DESIGN_BOXES . " WHERE block_name = 'block-".$block_id5."-2' and widget_name = 'account\\StoredCards' and theme_name = '".$theme_name."' ");
-            if ( tep_db_num_rows($block_query) > 0 ) {
-                $block_data = tep_db_fetch_array($block_query);
-                $block_id7 = $block_data["id"];
-            }
-            
-            $block_query = tep_db_query("SELECT id FROM " . TABLE_DESIGN_BOXES . " WHERE block_name = 'block-".$block_id5."-2' and widget_name = 'Html_box' and theme_name = '".$theme_name."' ");
-            if ( tep_db_num_rows($block_query) > 0 ) {
-                $block_data = tep_db_fetch_array($block_query);
-                $block_id8 = $block_data["id"];
-            }
-            
-            tep_db_query("DELETE FROM " . TABLE_DESIGN_BOXES_SETTINGS . " WHERE box_id = '".$block_id3."'");
-            tep_db_query("DELETE FROM " . TABLE_DESIGN_BOXES_SETTINGS . " WHERE box_id = '".$block_id4."'");
-            tep_db_query("DELETE FROM " . TABLE_DESIGN_BOXES_SETTINGS . " WHERE box_id = '".$block_id5."'");
-            tep_db_query("DELETE FROM " . TABLE_DESIGN_BOXES_SETTINGS . " WHERE box_id = '".$block_id6."'");
-            tep_db_query("DELETE FROM " . TABLE_DESIGN_BOXES_SETTINGS . " WHERE box_id = '".$block_id7."'");
-            tep_db_query("DELETE FROM " . TABLE_DESIGN_BOXES_SETTINGS . " WHERE box_id = '".$block_id8."'");
-            tep_db_query("DELETE FROM design_boxes_cache WHERE block_name = 'stored_cards'");
-            tep_db_query("DELETE FROM design_boxes_cache WHERE block_name = 'account-menu'");
-            
-            tep_db_query("DELETE FROM " . TABLE_DESIGN_BOXES . " WHERE id = '".$block_id3."'");
-            tep_db_query("DELETE FROM " . TABLE_DESIGN_BOXES . " WHERE id = '".$block_id4."'");
-            tep_db_query("DELETE FROM " . TABLE_DESIGN_BOXES . " WHERE id = '".$block_id5."'");
-            tep_db_query("DELETE FROM " . TABLE_DESIGN_BOXES . " WHERE id = '".$block_id6."'");
-            tep_db_query("DELETE FROM " . TABLE_DESIGN_BOXES . " WHERE id = '".$block_id7."'");
-            tep_db_query("DELETE FROM " . TABLE_DESIGN_BOXES . " WHERE id = '".$block_id8."'");
 
-            $install_query = tep_db_query("SELECT id FROM " . TABLE_DESIGN_BOXES . " WHERE block_name = 'stored_cards' and theme_name = '".$theme_name."' ");
-            if ( tep_db_num_rows($install_query) <= 0 ) {
-                
-                tep_db_perform(TABLE_DESIGN_BOXES, array(
-                    'microtime' => $microtime,
-                    'theme_name' => $theme_name,
-                    'block_name' => 'block-'.$block_id2,
-                    'widget_name' => 'account\\AccountLink',
-                    'widget_params' => '',
-                    'sort_order' => 14
-                ));
-                $box_id1 = tep_db_insert_id();
-
-                tep_db_perform(TABLE_DESIGN_BOXES, array(
-                    'microtime' => $microtime,
-                    'theme_name' => $theme_name,
-                    'block_name' => 'stored_cards',
-                    'widget_name' => 'BlockBox',
-                    'widget_params' => '',
-                    'sort_order' => 1
-                ));
-                $box_id2 = tep_db_insert_id();
-
-                tep_db_perform(TABLE_DESIGN_BOXES, array(
-                    'microtime' => $microtime,
-                    'theme_name' => $theme_name,
-                    'block_name' => 'block-'.$box_id2,
-                    'widget_name' => 'BlockBox',
-                    'widget_params' => '',
-                    'sort_order' => 1
-                ));
-                $box_id3 = tep_db_insert_id();
-
-                tep_db_perform(TABLE_DESIGN_BOXES, array(
-                    'microtime' => $microtime,
-                    'theme_name' => $theme_name,
-                    'block_name' => 'block-'.$box_id3,
-                    'widget_name' => 'WidgetsAria',
-                    'widget_params' => '',
-                    'sort_order' => 1
-                ));
-                $box_id4 = tep_db_insert_id();
-
-                tep_db_perform(TABLE_DESIGN_BOXES, array(
-                    'microtime' => $microtime,
-                    'theme_name' => $theme_name,
-                    'block_name' => 'block-'.$box_id3.'-2',
-                    'widget_name' => 'account\\StoredCards',
-                    'widget_params' => '',
-                    'sort_order' => 2
-                ));
-                $box_id5 = tep_db_insert_id();
-
-                tep_db_perform(TABLE_DESIGN_BOXES, array(
-                    'microtime' => $microtime,
-                    'theme_name' => $theme_name,
-                    'block_name' => 'block-'.$box_id3.'-2',
-                    'widget_name' => 'Html_box',
-                    'widget_params' => '',
-                    'sort_order' => 1
-                ));
-                $box_id6 = tep_db_insert_id();
-                
-                tep_db_perform(TABLE_DESIGN_BOXES_SETTINGS, array(
-                    'box_id' => $box_id2,
-                    'microtime' => $microtime,
-                    'theme_name' => $theme_name,
-                    'setting_name' => 'block_type',
-                    'setting_value' => '1',
-                    'language_id' => 0,
-                    'visibility' => ''
-                ));
-                
-                tep_db_perform(TABLE_DESIGN_BOXES_SETTINGS, array(
-                    'box_id' => $box_id3,
-                    'microtime' => $microtime,
-                    'theme_name' => $theme_name,
-                    'setting_name' => 'block_type',
-                    'setting_value' => '6',
-                    'language_id' => 0,
-                    'visibility' => ''
-                ));
-                
-                tep_db_perform(TABLE_DESIGN_BOXES_SETTINGS, array(
-                    'box_id' => $box_id3,
-                    'microtime' => $microtime,
-                    'theme_name' => $theme_name,
-                    'setting_name' => 'schema',
-                    'setting_value' => '6-3',
-                    'language_id' => 0,
-                    'visibility' => ''
-                ));
-                
-                tep_db_perform(TABLE_DESIGN_BOXES_SETTINGS, array(
-                    'box_id' => $box_id4,
-                    'microtime' => $microtime,
-                    'theme_name' => $theme_name,
-                    'setting_name' => 'aria_name',
-                    'setting_value' => 'account-menu',
-                    'language_id' => 0,
-                    'visibility' => ''
-                ));
-                
-                tep_db_perform(TABLE_DESIGN_BOXES_SETTINGS, array(
-                    'box_id' => $box_id6,
-                    'microtime' => $microtime,
-                    'theme_name' => $theme_name,
-                    'setting_name' => 'text',
-                    'setting_value' => '<h1>STORED CARDS</h1>',
-                    'language_id' => 0,
-                    'visibility' => ''
-                ));
-                
-                tep_db_perform(TABLE_DESIGN_BOXES_SETTINGS, array(
-                    'box_id' => $box_id1,
-                    'microtime' => $microtime,
-                    'theme_name' => $theme_name,
-                    'setting_name' => 'link',
-                    'setting_value' => 'Stored Cards',
-                    'language_id' => 0,
-                    'visibility' => ''
-                ));
-                
-                tep_db_perform(TABLE_DESIGN_BOXES_SETTINGS, array(
-                    'box_id' => $box_id1,
-                    'microtime' => $microtime,
-                    'theme_name' => $theme_name,
-                    'setting_name' => 'text',
-                    'setting_value' => 'TEXT_STORED_CARDS',
-                    'language_id' => 0,
-                    'visibility' => ''
-                ));
-                
-                $json_string = '[{"id":'.$box_id2.',"microtime":"'.$microtime.'","theme_name":"'.$theme_name.'","block_name":"stored_cards","widget_name":"BlockBox","widget_params":"","sort_order":1,"settings":{"0":{"block_type":"1","params":""},"colInRowCarousel":null},"children":{"block-'.$box_id2.'":[{"id":'.$box_id3.',"microtime":"'.$microtime.'","theme_name":"'.$theme_name.'","block_name":"block-'.$box_id2.'","widget_name":"BlockBox","widget_params":"","sort_order":1,"settings":{"0":{"block_type":"6","schema":"6-3","params":""},"colInRowCarousel":null},"children":{"block-'.$box_id3.'":[{"id":'.$box_id4.',"microtime":"'.$microtime.'","theme_name":"'.$theme_name.'","block_name":"block-'.$box_id3.'","widget_name":"WidgetsAria","widget_params":"","sort_order":1,"settings":{"0":{"aria_name":"account-menu","params":""},"colInRowCarousel":null}}],"block-'.$box_id3.'-2":[{"id":'.$box_id6.',"microtime":"'.$microtime.'","theme_name":"'.$theme_name.'","block_name":"block-'.$box_id3.'-2","widget_name":"Html_box","widget_params":"","sort_order":1,"settings":{"0":{"text":"<h1>STORED CARDS<\/h1>","params":""},"colInRowCarousel":null}},{"id":'.$box_id5.',"microtime":"'.$microtime.'","theme_name":"'.$theme_name.'","block_name":"block-'.$box_id3.'-2","widget_name":"account\\StoredCards","widget_params":"","sort_order":2,"settings":{"0":{"params":""},"colInRowCarousel":null}}]}}]}}]';
-
-                tep_db_perform('design_boxes_cache', array(
-                    'block_name' => 'stored_cards',
-                    'theme_name' => $theme_name,
-                    'json' => $json_string,
-                    'serialize' => '',
-                    'date_modified' => date("Y-m-d H:i:s")
-                ));
-
-            }
-            
         }
 
         //check if plugin translation key already exist or create new
