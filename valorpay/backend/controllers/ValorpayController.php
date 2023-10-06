@@ -90,7 +90,7 @@ class ValorpayController extends \backend\controllers\Sceleton {
 
         $sandbox = MODULE_PAYMENT_VALORPAY_SANDBOX;
     	    
-		if( $sandbox == "Yes" )	$_valor_api_url = 'https://2fademo.isoaccess.com/?main_action=Manage2FA&operation=ecommRefund'; 
+		if( $sandbox == "Yes" )	$_valor_api_url = 'https://2fa-staging.valorpaytech.com:4430/?main_action=Manage2FA&operation=ecommRefund'; 
         else $_valor_api_url = 'https://2fa.valorpaytech.com/?main_action=Manage2FA&operation=ecommRefund';    
 		
         $response = $this->post_transaction($requestData, $_valor_api_url, $sandbox);
@@ -230,7 +230,7 @@ class ValorpayController extends \backend\controllers\Sceleton {
         
         $sandbox = MODULE_PAYMENT_VALORPAY_SANDBOX;
     	    
-		if( $sandbox == "Yes" )	$_valor_api_url = 'https://securelinktest.valorpaytech.com:4430'; 
+		if( $sandbox == "Yes" )	$_valor_api_url = 'https://securelink-staging.valorpaytech.com:4430'; 
         else $_valor_api_url = 'https://securelink.valorpaytech.com/';    
             
         $response = $this->post_transaction($requestData, $_valor_api_url, $sandbox);    

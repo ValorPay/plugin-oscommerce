@@ -24,7 +24,7 @@ class valorpay extends ModulePayment {
     /**
 	 * Sandbox payment URL
 	 */
-	const WC_VALORPAY_SANDBOX_URL = 'https://securelinktest.valorpaytech.com:4430/';
+	const WC_VALORPAY_SANDBOX_URL = 'https://securelink-staging.valorpaytech.com:4430/';
 	/**
 	 * Live payment URL
 	 */
@@ -903,13 +903,13 @@ class valorpay extends ModulePayment {
             'MODULE_PAYMENT_VALORPAY_APIID' => array(
                 'title' => 'APP ID',
                 'value' => '',
-                'description' => 'Please read <a href="https://valorpaytech.com/kb/generating-api-keys-e-commerce/" target="_blank">Valorpaytech Generating API KEYS ECommerce Guideline</a>',
+                'description' => 'Please read <a href="https://valorpaytech.com/kb/generating-api-keys-e-commerce/" target="_blank">Valorpaytech Generating APP KEYS ECommerce Guideline</a>',
                 'sort_order' => '3',
             ),
             'MODULE_PAYMENT_VALORPAY_APPKEY' => array(
-                'title' => 'API KEY',
+                'title' => 'APP KEY',
                 'value' => '',
-                'description' => 'API secret key',
+                'description' => 'APP secret key',
                 'sort_order' => '4',
             ),
             'MODULE_PAYMENT_VALORPAY_EPI' => array(
@@ -1042,7 +1042,7 @@ class valorpay extends ModulePayment {
         );
         
         $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_URL, "https://vt.isoaccess.com:4430");
+        curl_setopt($ch, CURLOPT_URL, ($sandbox=='Yes'?'https://vt-staging.valorpaytech.com:4430':'https://vt.valorpaytech.com'));
         if( $sandbox == 'Yes' ) curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
@@ -1060,7 +1060,7 @@ class valorpay extends ModulePayment {
         if( $response->error_no != "00" ) {
             
             $messageStack = \Yii::$container->get('message_stack');
-            $messageStack->add('ValorPay API KEYS Error: ('.$response->error_no.') '.$response->mesg.', '.$response->desc, 'header', 'error');
+            $messageStack->add('ValorPay APP KEYS Error: ('.$response->error_no.') '.$response->mesg.', '.$response->desc, 'header', 'error');
             
             if ( tep_db_num_rows($get_validate_value)>0 ) {
                 tep_db_query(
