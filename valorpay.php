@@ -36,9 +36,19 @@ class valorpay extends ModulePayment {
 	const WC_VALORPAY_VAULT_SANDBOX_URL = 'https://demo.valorpaytech.com/api/valor-vault/addcustomer';
 
 	/**
+	 * Live vault add customer profile URL
+	 */
+	const WC_VALORPAY_VAULT_URL = 'https://online.valorpaytech.com/api/valor-vault/addcustomer';
+
+	/**
 	 * Sandbox vault add payment profile URL
 	 */
 	const WC_VALORPAY_VAULT_ADD_PAYMENT_PROFILE_SANDBOX_URL = 'https://demo.valorpaytech.com/api/valor-vault/addpaymentprofile/%s';
+
+	/**
+	 * Live vault add payment profile URL
+	 */
+	const WC_VALORPAY_VAULT_ADD_PAYMENT_PROFILE_URL = 'https://online.valorpaytech.com/api/valor-vault/addpaymentprofile/%s';
 
 	/**
 	 * Sandbox vault get payment profile URL
@@ -46,10 +56,20 @@ class valorpay extends ModulePayment {
 	const WC_VALORPAY_VAULT_GET_PAYMENT_PROFILE_SANDBOX_URL = 'https://demo.valorpaytech.com/api/valor-vault/getpaymentprofile/%s';
 
 	/**
+	 * Live vault get payment profile URL
+	 */
+	const WC_VALORPAY_VAULT_GET_PAYMENT_PROFILE_URL = 'https://online.valorpaytech.com/api/valor-vault/getpaymentprofile/%s';
+
+	/**
 	 * Sandbox vault get payment profile URL
 	 */
 	const WC_VALORPAY_VAULT_DELETE_PAYMENT_PROFILE_SANDBOX_URL = 'https://demo.valorpaytech.com/api/valor-vault/deletepaymentprofile/%s/%s';
-	
+
+	/**
+	 * Live vault get payment profile URL
+	 */
+	const WC_VALORPAY_VAULT_DELETE_PAYMENT_PROFILE_URL = 'https://online.valorpaytech.com/api/valor-vault/deletepaymentprofile/%s/%s';
+		
     /**
      * default values for translation
      */
@@ -615,24 +635,24 @@ class valorpay extends ModulePayment {
 	 * @since 1.0.0
 	 */
 	function get_valorpay_vault_url($_vault_customer_id, $list=false, $payment_id=0) {
-		$api_url = self::WC_VALORPAY_VAULT_SANDBOX_URL;
+		$api_url = self::WC_VALORPAY_VAULT_URL;
 		if ( !$_vault_customer_id && 'Yes' === MODULE_PAYMENT_VALORPAY_SANDBOX ) {
 			$api_url = self::WC_VALORPAY_VAULT_SANDBOX_URL;
 		}
 		if( $_vault_customer_id && !$list && !$payment_id ) {
-			$api_url = sprintf(self::WC_VALORPAY_VAULT_ADD_PAYMENT_PROFILE_SANDBOX_URL,$_vault_customer_id);
+			$api_url = sprintf(self::WC_VALORPAY_VAULT_ADD_PAYMENT_PROFILE_URL,$_vault_customer_id);
 			if ( 'Yes' === MODULE_PAYMENT_VALORPAY_SANDBOX ) {
 				$api_url = sprintf(self::WC_VALORPAY_VAULT_ADD_PAYMENT_PROFILE_SANDBOX_URL,$_vault_customer_id);
 			}
 		}
 		if( $_vault_customer_id && $list ) {
-			$api_url = sprintf(self::WC_VALORPAY_VAULT_GET_PAYMENT_PROFILE_SANDBOX_URL,$_vault_customer_id);
+			$api_url = sprintf(self::WC_VALORPAY_VAULT_GET_PAYMENT_PROFILE_URL,$_vault_customer_id);
 			if ( 'Yes' === MODULE_PAYMENT_VALORPAY_SANDBOX ) {
 				$api_url = sprintf(self::WC_VALORPAY_VAULT_GET_PAYMENT_PROFILE_SANDBOX_URL,$_vault_customer_id);
 			}
 		}
 		if( $_vault_customer_id && $payment_id ) {
-			$api_url = sprintf(self::WC_VALORPAY_VAULT_DELETE_PAYMENT_PROFILE_SANDBOX_URL,$_vault_customer_id,$payment_id);
+			$api_url = sprintf(self::WC_VALORPAY_VAULT_DELETE_PAYMENT_PROFILE_URL,$_vault_customer_id,$payment_id);
 			if ( 'Yes' === MODULE_PAYMENT_VALORPAY_SANDBOX ) {
 				$api_url = sprintf(self::WC_VALORPAY_VAULT_DELETE_PAYMENT_PROFILE_SANDBOX_URL,$_vault_customer_id,$payment_id);
 			}

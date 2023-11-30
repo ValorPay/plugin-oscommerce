@@ -30,10 +30,20 @@ class StoredCards extends Widget
 	 */
 	const WC_VALORPAY_VAULT_GET_PAYMENT_PROFILE_SANDBOX_URL = 'https://demo.valorpaytech.com/api/valor-vault/getpaymentprofile/%s';
 
+    /**
+	 * Live vault get payment profile URL
+	 */
+	const WC_VALORPAY_VAULT_GET_PAYMENT_PROFILE_URL = 'https://online.valorpaytech.com/api/valor-vault/getpaymentprofile/%s';
+
 	/**
 	 * Sandbox vault get payment profile URL
 	 */
 	const WC_VALORPAY_VAULT_DELETE_PAYMENT_PROFILE_SANDBOX_URL = 'https://demo.valorpaytech.com/api/valor-vault/deletepaymentprofile/%s/%s';
+	
+	/**
+	 * Live vault get payment profile URL
+	 */
+	const WC_VALORPAY_VAULT_DELETE_PAYMENT_PROFILE_URL = 'https://online.valorpaytech.com/api/valor-vault/deletepaymentprofile/%s/%s';
 	
     public function init()
     {
@@ -105,13 +115,13 @@ class StoredCards extends Widget
 	 */
 	function get_valorpay_vault_url($_vault_customer_id, $list=false, $profile_id=0) {
 		if( $_vault_customer_id && $list ) {
-			$api_url = sprintf(self::WC_VALORPAY_VAULT_GET_PAYMENT_PROFILE_SANDBOX_URL,$_vault_customer_id);
+			$api_url = sprintf(self::WC_VALORPAY_VAULT_GET_PAYMENT_PROFILE_URL,$_vault_customer_id);
 			if ( 'Yes' === MODULE_PAYMENT_VALORPAY_SANDBOX ) {
 				$api_url = sprintf(self::WC_VALORPAY_VAULT_GET_PAYMENT_PROFILE_SANDBOX_URL,$_vault_customer_id);
 			}
 		}
 		if( $_vault_customer_id && $profile_id ) {
-			$api_url = sprintf(self::WC_VALORPAY_VAULT_DELETE_PAYMENT_PROFILE_SANDBOX_URL,$_vault_customer_id,$profile_id);
+			$api_url = sprintf(self::WC_VALORPAY_VAULT_DELETE_PAYMENT_PROFILE_URL,$_vault_customer_id,$profile_id);
 			if ( 'Yes' === MODULE_PAYMENT_VALORPAY_SANDBOX ) {
 				$api_url = sprintf(self::WC_VALORPAY_VAULT_DELETE_PAYMENT_PROFILE_SANDBOX_URL,$_vault_customer_id,$profile_id);
 			}
