@@ -395,6 +395,7 @@ class valorpay extends ModulePayment {
             'appkey' => MODULE_PAYMENT_VALORPAY_APPKEY,
             'epi' => MODULE_PAYMENT_VALORPAY_EPI,
             'txn_type' => (MODULE_PAYMENT_VALORPAY_PAYMENT_METHOD=='Sale'?'sale':'auth'),
+            'ecomm_channel' => 'oscommerce',
             'amount' => $amount,
             'sandbox' => (MODULE_PAYMENT_VALORPAY_SANDBOX=='Yes'?1:0),
             'phone' => $billing["telephone"],
