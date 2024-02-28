@@ -216,6 +216,7 @@ class ValorpayController extends \backend\controllers\Sceleton {
             'appkey' => MODULE_PAYMENT_VALORPAY_APPKEY,
             'epi' => MODULE_PAYMENT_VALORPAY_EPI,
             'txn_type' => 'refund',
+            'ecomm_channel' => 'oscommerce',
             'amount' => $post['amount'],
             'sandbox' => (MODULE_PAYMENT_VALORPAY_SANDBOX == "Yes"?1:0),
             'token' => $token,
